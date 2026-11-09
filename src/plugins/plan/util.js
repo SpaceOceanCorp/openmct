@@ -44,7 +44,13 @@ export function getValidatedData(domainObject) {
     sourceMap.groupId !== undefined
   ) {
     let mappedJson = {};
-    json[sourceMap.activities].forEach((activity) => {
+    const activities = json[sourceMap.activities];
+
+    if (!Array.isArray(activities)) {
+      return mappedJson;
+    }
+
+    activities.forEach((activity) => {
       if (activity[sourceMap.groupId]) {
         const groupIdKey = activity[sourceMap.groupId];
         let groupActivity = {
@@ -113,15 +119,17 @@ export function getValidatedGroups(domainObject, planData) {
   const json = getObjectJson(domainObject);
   if (sourceMap?.orderedGroups) {
     const groups = json[sourceMap.orderedGroups];
-    if (groups.length && typeof groups[0] === 'object') {
-      //if groups is a list of objects, then get the name property from each group object.
-      const groupsWithNames = groups.filter(
-        (groupObj) => groupObj.name !== undefined && groupObj.name !== ''
-      );
-      orderedGroupNames = groupsWithNames.map((groupObj) => groupObj.name);
-    } else {
-      // Otherwise, groups is likely a list of names, so use that.
-      orderedGroupNames = groups;
+    if (Array.isArray(groups)) {
+      if (groups.length && typeof groups[0] === 'object') {
+        //if groups is a list of objects, then get the name property from each group object.
+        const groupsWithNames = groups.filter(
+          (groupObj) => groupObj.name !== undefined && groupObj.name !== ''
+        );
+        orderedGroupNames = groupsWithNames.map((groupObj) => groupObj.name);
+      } else {
+        // Otherwise, groups is likely a list of names, so use that.
+        orderedGroupNames = groups;
+      }
     }
   }
   if (orderedGroupNames === undefined) {
